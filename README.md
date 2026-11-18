@@ -61,8 +61,12 @@ Additional model policies (beyond the assignment):
 - Linux `inet_pton` validates address text, with IPv4 prefixes 0–32 and IPv6
   prefixes 0–128. Host bits are retained. CIDR suffixes and zone identifiers are
   not accepted in address text; the prefix is supplied separately.
-- Duplicate addresses and multiple VLANs with the same parent/ID are allowed;
-  uniqueness and hardware-specific policy are outside this model.
+- An IP address cannot belong to two interfaces, regardless of prefix length or
+  textual spelling. Uniqueness compares parsed bytes within each address family;
+  IPv4 and IPv4-mapped IPv6 are distinct. Repeated addresses on the same interface
+  are also rejected. Updating or removing an owner releases its old addresses.
+- VLAN parent/ID pairs must be unique across interfaces. The same ID may be used
+  on different Ethernet parents. Updating or removing a VLAN releases its old pair.
 
 A polymorphic hierarchy was considered, but a variant keeps the small, closed
 set of types explicit and avoids virtual cloning and shared mutable ownership.

@@ -1,6 +1,7 @@
 #include "interface_config/configuration.hpp"
 
 #include <arpa/inet.h>
+#include <array>
 #include <functional>
 #include <set>
 #include <stdexcept>
@@ -26,19 +27,27 @@ std::vector<std::string> references(const Interface& interface)
 void Configuration::validate(const Interfaces& interfaces)
 {
     std::set<std::string> bridge_members;
+    using AddressKey = std::pair<int, std::array<unsigned char, 16>>;
+    std::map<AddressKey, std::string> address_owners;
+    std::set<std::pair<std::string, unsigned>> vlan_keys;
     for (const auto& [name, interface] : interfaces) {
         require(!name.empty() && name.find('\0') == std::string::npos,
                 "Interface name must be nonempty and contain no NUL");
         require(interface.admin_state == AdminState::up || interface.admin_state == AdminState::down,
                 name + ": invalid admin state");
         for (const auto& address : interface.addresses) {
-            in6_addr storage{};
+            std::array<unsigned char, 16> storage{};
             const bool no_nul = address.value.find('\0') == std::string::npos;
-            const bool ipv4 = inet_pton(AF_INET, address.value.c_str(), &storage) == 1;
-            const bool ipv6 = inet_pton(AF_INET6, address.value.c_str(), &storage) == 1;
+            const bool ipv4 = inet_pton(AF_INET, address.value.c_str(), storage.data()) == 1;
+            const bool ipv6 = !ipv4 &&
+                inet_pton(AF_INET6, address.value.c_str(), storage.data()) == 1;
             require(no_nul && ((ipv4 && address.prefix_length <= 32) ||
                               (ipv6 && address.prefix_length <= 128)),
                     name + ": invalid IP address or prefix");
+            const auto [owner, inserted] = address_owners.emplace(
+                AddressKey{ipv4 ? AF_INET : AF_INET6, storage}, name);
+            require(inserted,
+                    name + ": IP address " + address.value + " already assigned to " + owner->second);
         }
         if (const auto* ethernet = std::get_if<Ethernet>(&interface.properties)) {
             require(ethernet->speed_mbps > 0 && ethernet->mtu >= 68 && ethernet->mtu <= 65535,
@@ -51,6 +60,9 @@ void Configuration::validate(const Interfaces& interfaces)
             require(parent != interfaces.end() &&
                         std::holds_alternative<Ethernet>(parent->second.properties),
                     name + ": VLAN parent must be an existing Ethernet interface");
+            require(vlan_keys.emplace(vlan->parent, vlan->id).second,
+                    name + ": duplicate VLAN parent/ID combination: " +
+                        vlan->parent + "/" + std::to_string(vlan->id));
         } else if (const auto* bridge = std::get_if<Bridge>(&interface.properties)) {
             require(bridge->stp == STP::off || bridge->stp == STP::on,
                     name + ": invalid STP state");
