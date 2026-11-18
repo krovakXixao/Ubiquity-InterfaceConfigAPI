@@ -25,6 +25,14 @@ ctest --test-dir build/manual --output-on-failure
 
 ## API and design
 
+![UML class diagram showing configuration ownership, interface properties, and named dependencies](docs/diagrams/configuration-uml.svg)
+
+Filled diamonds indicate composition; dashed arrows indicate type usage,
+variant alternatives, or references resolved by interface name. The variant
+alternatives use value types rather than inheritance.
+[Diagram source](docs/diagrams/configuration-uml.dot) (regenerate with
+`dot -Tsvg docs/diagrams/configuration-uml.dot -o docs/diagrams/configuration-uml.svg`).
+
 [Public header](include/interface_config/configuration.hpp),
 [implementation](src/configuration.cpp), and [example](examples/main.cpp).
 
@@ -69,8 +77,9 @@ Additional model policies (beyond the assignment):
 - VLAN parent/ID pairs must be unique across interfaces. The same ID may be used
   on different Ethernet parents. Updating or removing a VLAN releases its old pair.
 
-A polymorphic hierarchy was considered, but a variant keeps the small, closed
-set of types explicit and avoids virtual cloning and shared mutable ownership.
+A polymorphic hierarchy was considered, but a variant makes the supported
+interface types explicit and provides ordinary value copying, avoiding the
+pointers and virtual cloning typically needed for an inheritance-based model.
 Per-property setters were also considered; whole-value updates allow several
 related fields to change together without intermediate states. Mutable pointers
 into stored interfaces are deliberately unavailable.
