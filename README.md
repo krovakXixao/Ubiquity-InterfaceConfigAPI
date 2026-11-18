@@ -32,8 +32,9 @@ ctest --test-dir build/manual --output-on-failure
 shared properties and a `std::variant` of Ethernet, VLAN, or Bridge properties.
 References use names rather than pointers, so copies remain self-contained.
 `get()` returns an editable snapshot; change it and pass it to `update()`.
-`interfaces()` exposes a const view for enumeration. Its element references and
-iterators must not be retained across successful mutations.
+`interfaces()` returns an owned snapshot for enumeration. Editing the snapshot
+does not affect the configuration; it remains valid after later mutations or
+destruction of the configuration.
 
 `add()` and `update()` construct a private candidate, check all local and graph
 constraints, then commit with a nonthrowing swap. Validation is internal to each

@@ -201,6 +201,26 @@ void test_detached_snapshots()
     c.update("eth0", detached);
     check(c.get("eth0") == detached);
 }
+void test_interfaces_snapshot()
+{
+    Configuration::Interfaces snapshot;
+    {
+        Configuration c;
+        c.add("eth0", {Ethernet{}, {}});
+        snapshot = c.interfaces();
+        snapshot.at("eth0").admin_state = AdminState::up;
+        check(c.get("eth0").admin_state == AdminState::down);
+
+        const auto& saved_interface = snapshot.at("eth0");
+        c.update("eth0", {Ethernet{100, Duplex::full, 9000}, {}});
+        c.add("eth1", {Ethernet{}, {}});
+        c.remove("eth0");
+        check(snapshot.size() == 1);
+        check(std::get<Ethernet>(saved_interface.properties).mtu == 1500);
+        check(saved_interface.admin_state == AdminState::up);
+    }
+    check(snapshot.at("eth0").admin_state == AdminState::up);
+}
 } // namespace
 
 int main()
@@ -221,6 +241,7 @@ int main()
         {"address validation", test_address_validation},
         {"ethernet validation", test_ethernet_validation},
         {"detached snapshots", test_detached_snapshots},
+        {"interfaces snapshot", test_interfaces_snapshot},
     };
     unsigned failures = 0;
     for (const auto& test : tests) {

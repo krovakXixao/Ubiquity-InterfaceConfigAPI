@@ -51,8 +51,8 @@ public:
     void remove(const std::string& name);
     // Detached snapshot. Missing names throw std::out_of_range.
     [[nodiscard]] Interface get(const std::string& name) const;
-    // View is invalidated by successful mutations; copy it for a persistent snapshot.
-    [[nodiscard]] const Interfaces& interfaces() const noexcept { return interfaces_; }
+    // Detached snapshot, independent of later mutations and this object's lifetime.
+    [[nodiscard]] Interfaces interfaces() const { return interfaces_; }
 private:
     static void validate(const Interfaces& interfaces);
     Interfaces interfaces_;
