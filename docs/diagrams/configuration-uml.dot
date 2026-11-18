@@ -1,0 +1,33 @@
+digraph ConfigurationUML {
+    graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.5", ranksep="0.7",
+           fontname="DejaVu Sans", label="interface_config — C++20 configuration model", labelloc=t, fontsize=18];
+    node [shape=record, fontname="DejaVu Sans", fontsize=11, style=filled,
+          fillcolor="#f1f5f9", color="#475569", margin="0.15,0.10"];
+    edge [fontname="DejaVu Sans", fontsize=10, color="#475569"];
+
+    Configuration [label="{Configuration|− interfaces_ : map(string, Interface)|+ add(name : string, interface : Interface) : void\l+ update(name : string, interface : Interface) : void\l+ remove(name : string) : void\l+ get(name : string) const : Interface [snapshot]\l+ interfaces() const : Interfaces [snapshot]\l− validate(interfaces : Interfaces) : void [static]\l}", fillcolor="#dbeafe"];
+    Interface [label="{Interface|+ properties : Properties\l+ addresses : vector(Address)\l+ admin_state : AdminState = down\l}"];
+    Properties [label="{«variant alias»\nProperties|Exactly one alternative:\lEthernet, Vlan, or Bridge\l}", fillcolor="#ede9fe"];
+    Address [label="{Address|+ value : string\l+ prefix_length : unsigned\l}"];
+    Ethernet [label="{Ethernet|+ speed_mbps : unsigned = 1000\l+ duplex : Duplex = full\l+ mtu : unsigned = 1500\l}"];
+    Vlan [label="{Vlan|+ parent : string\l+ id : unsigned [1..4094]\l}"];
+    Bridge [label="{Bridge|+ members : vector(string)\l+ stp : STP = off\l}"];
+    AdminState [label="{«enumeration»\nAdminState|down\lup\l}", fillcolor="#ecfdf5"];
+    Duplex [label="{«enumeration»\nDuplex|half\lfull\l}", fillcolor="#ecfdf5"];
+    STP [label="{«enumeration»\nSTP|off\lon\l}", fillcolor="#ecfdf5"];
+
+    Configuration -> Interface [dir=both, arrowtail=diamond, arrowhead=none,
+                                taillabel="1", headlabel="0..*", label="owns; keyed by name"];
+    Interface -> Properties [dir=both, arrowtail=diamond, arrowhead=none,
+                             headlabel="1", label="properties"];
+    Interface -> Address [dir=both, arrowtail=diamond, arrowhead=none,
+                          headlabel="0..*", label="addresses"];
+    Interface -> AdminState [style=dashed, label="uses"];
+    Properties -> Ethernet [style=dashed, label="alternative"];
+    Properties -> Vlan [style=dashed, label="alternative"];
+    Properties -> Bridge [style=dashed, label="alternative"];
+    Ethernet -> Duplex [style=dashed, label="uses"];
+    Bridge -> STP [style=dashed, label="uses"];
+    Vlan -> Interface [style=dashed, constraint=false, label="parent by name [1]\nEthernet only"];
+    Bridge -> Interface [style=dashed, constraint=false, label="members by name [0..*]\nno IPs; acyclic; one bridge per member"];
+}
