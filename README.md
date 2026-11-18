@@ -9,19 +9,14 @@ netlink/ioctl backend, JSON, or thread synchronization is included.
 Requires Linux, a C++20 compiler, CMake 3.20+, and Make. No external libraries.
 
 ```sh
-cmake --preset debug
-cmake --build --preset debug --parallel
-ctest --test-dir build/debug --output-on-failure
-./build/debug/interface_config_example
+make build  # Configure and build Debug (also the default for plain make)
+make debug  # Configure and build Debug, then run the example
+make run    # Configure and build Release, then run the example
+make test   # Configure and build Debug, then run tests
 ```
 
-Replace `debug` with `release` for an optimized build. Without presets:
-
-```sh
-cmake -S . -B build/manual -DCMAKE_BUILD_TYPE=Debug
-cmake --build build/manual --parallel
-ctest --test-dir build/manual --output-on-failure
-```
+Run these commands from the repository root. The Makefile wraps the existing
+CMake presets; build outputs go to `build/debug` and `build/release`.
 
 ## API and design
 
