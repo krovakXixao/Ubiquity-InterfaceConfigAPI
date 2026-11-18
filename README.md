@@ -86,14 +86,25 @@ into stored interfaces are deliberately unavailable.
 
 ## Adding Bond/LAG
 
-Add a `Bond` value type (members and bonding mode) to `Properties`. Extend the
-internal dependency helper and validation with member existence, exclusivity,
-address rules, and allowed member types. The generic cycle check and removal
-protection then cover its dependencies. Add examples and tests for creation,
-updates, type changes, and teardown. No ownership or mutation API changes are
-needed. A future model needing multi-interface atomic transitions could expose
-an explicit batch transaction using the same candidate-and-commit mechanism.
+- [ ] Add a `Bond` value type with members and bonding mode to `Properties`.
+- [ ] Extend the internal dependency helper to return Bond members so the generic
+  cycle check and removal protection cover its dependencies.
+- [ ] Add validation for member existence, exclusivity, address rules, and allowed
+  member types.
+- [ ] Add examples and tests for creation, updates, type changes, and teardown.
 
-Tests exercise invalid insertions and updates, unchanged state after rejection,
-address boundaries, dependency removal, bridge membership, cycles, detached
-snapshots, reparenting, and successful teardown. Checks remain enabled in Release.
+No ownership or mutation API changes are needed.
+
+- [ ] Optional future extension: add a batch transaction for atomic changes to
+  multiple interfaces using the same candidate-and-commit mechanism.
+
+Current test coverage:
+
+- [x] Invalid insertions and updates.
+- [x] Unchanged state after rejection.
+- [x] Address boundaries.
+- [x] Dependency removal.
+- [x] Bridge membership and dependency cycles.
+- [x] Detached snapshots.
+- [x] Reparenting and successful teardown.
+- [x] Checks remain enabled in Release.
